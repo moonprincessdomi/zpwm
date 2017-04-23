@@ -22,6 +22,7 @@
     <ProjectGuid>{0BFE90D8-9F97-45DF-A76E-BD0C321BD541}</ProjectGuid>
     <RootNamespace>dominika_losiewicz_01</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>todobre</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -1,10 +1,99 @@
-#include<string>
+#include <string>
 #include <Windows.h>
 #include "res.h"
 
 bool isGameOn = false;
 bool isFirstPlayerTurn = true;
 bool isSecondPlayerTurn = false;
+int iter = 0;
+char tabl[9];
+char gracz;
+
+bool win(char tab[]) {
+	for (int i = 0; i <= 6; i += 3) {
+		if (
+			((tab[i] == tab[i + 1] && tab[i + 2] == tab[i + 1]) && (tab[i] == 'X' || tab[i] == 'O'))
+			||
+			(((tab[0] == tab[4] && tab[4] == tab[8]) || (tab[2] == tab[4] && tab[4] == tab[6])) && (tab[4] == 'X' || tab[4] == 'O'))
+			||
+			((((tab[0] == tab[3] && tab[3] == tab[6]) && (tab[3] == 'X' || tab[3] == 'O')) || ((tab[1] == tab[4] && tab[4] == tab[7]) && (tab[4] == 'X' || tab[4] == 'O')) || ((tab[2] == tab[5] && tab[5] == tab[8]) && (tab[5] == 'X' || tab[5] == 'O'))))
+			)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool remis(char tab[]) {
+	int i = 0;
+	while (i < 9)
+	{
+		if (tab[i] == ' ')
+		{
+			break;
+		}
+		else
+		{
+			i++;
+		}
+		if (i == 8) {
+			return true;
+		}
+	}
+	return false;
+}
+
+int minmax(char gracz, char tab[])
+{
+	int m, mmx;
+	char tablc[9];
+	for (int i = 0; i < 9; i++) {
+		tablc[i] = tab[i];
+	}
+
+	if (win(tablc)) return (gracz == 'O') ? 1 : -1;
+	if (remis(tablc)) return 0;
+	gracz = (gracz == 'O') ? 'X' : 'O';
+	mmx = (gracz == 'X') ? 10 : -10;
+
+	for (int i = 0; i < 9; i++)
+		if (tablc[i] == ' ')
+		{
+			tablc[i] = gracz;
+			m = minmax(gracz, tablc);
+			tablc[i] = ' ';
+			if (((gracz == 'X') && (m < mmx)) || ((gracz == 'O') && (m > mmx))) mmx = m;
+		}
+	return mmx;
+}
+
+
+
+int computer()
+{
+	int ruch, m, mmx;
+	mmx = -10;
+	for (int i = 0; i < 9; i++)
+	{
+		if (tabl[i] == ' ')
+		{
+			//tabl[i] = 'X';
+			char tablc[9];
+			for (int j = 0; j < 9; j++) {
+				tablc[j] = tabl[j];
+			}
+			tablc[i] = 'O';
+			m = minmax('O', tablc);
+			//tabl[i] = ' ';
+			if (m > mmx)
+			{
+				mmx = m; ruch = i;
+			}
+		}
+	}
+	return ruch;
+}
 
 INT_PTR CALLBACK DialogProc(HWND hwndDIg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) 
@@ -26,24 +115,87 @@ INT_PTR CALLBACK DialogProc(HWND hwndDIg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			case IDC_BUTTON10:
 			{
 				HWND hwndButton = (HWND)lParam;
-				if (GetWindowTextLength(hwndButton) == 0)
-				{
-					CHAR szText[500];
 
-					if (isFirstPlayerTurn == true) {
-						wsprintf(szText, "X");
-					}
-					else {
-						wsprintf(szText, "O");
-					}
-					SetWindowText(hwndButton, szText);
-					isFirstPlayerTurn = !isFirstPlayerTurn;
-				}
-				return TRUE;
-			}
-			case IDC_BUTTON1:
-				if (isGameOn = false)
+				for (int i = 0; i <= 10; i++) 
 				{
+					HWND hwndButtonx = GetDlgItem(hwndDIg, IDC_BUTTON2 + i);
+					if (hwndButtonx == hwndButton)
+					{
+						break;
+					}
+					iter++;
+				}
+
+				CHAR szText[500];
+				int TextLenght = 1;
+				if (GetWindowTextLength(hwndButton) == 0) 
+					{
+						if (isFirstPlayerTurn == true)
+						{
+							wsprintf(szText, "X");
+							tabl[iter] = 'X';
+							gracz = 'X';
+							SetWindowText(hwndButton, szText);
+						}
+						
+						bool w1=win(tabl);
+						bool r1=remis(tabl);
+
+						if (w1 || r1) {
+							for (int j = 0; j < 9; j++) {
+								HWND hwndButton = GetDlgItem(hwndDIg, IDC_BUTTON2 + j);
+								CHAR szText1[500];
+								wsprintf(szText1, "");
+								SetWindowText(hwndButton, szText1);
+							}
+							for (int z = 0; z < 9; z++)
+							{
+								tabl[z] = ' ';
+							}
+							if(w1)MessageBox(0, "Wygral X", "Wygral X", MB_OK);
+							if(r1)MessageBox(0, "REMIS", "REMIS", MB_OK);
+						}
+
+						//isFirstPlayerTurn = !isFirstPlayerTurn;
+
+						int ruch = computer();
+						tabl[ruch] = 'O';
+						HWND hwndButtoncomp = GetDlgItem(hwndDIg, IDC_BUTTON2 + ruch);
+						char szTextcopm[10];
+						wsprintf(szTextcopm, "O");
+						SetWindowText(hwndButtoncomp, szTextcopm);
+
+						bool w2 = win(tabl);
+						bool r2 = remis(tabl);
+
+						if (w2 || r2) {
+							for (int j = 0; j < 9; j++) {
+								HWND hwndButton = GetDlgItem(hwndDIg, IDC_BUTTON2 + j);
+								CHAR szText1[500];
+								wsprintf(szText1, "");
+								SetWindowText(hwndButton, szText1);
+							}
+							for (int z = 0; z < 9; z++)
+							{
+								tabl[z] = ' ';
+							}
+							if(w1)MessageBox(0, "Wygral O", "Wygral O", MB_OK);
+							if(r2)MessageBox(0, "REMIS", "REMIS", MB_OK);
+						}
+						iter = 0;
+
+						//isFirstPlayerTurn = !isFirstPlayerTurn;
+					}
+					return TRUE;
+				}
+			return FALSE;
+			case IDC_BUTTON1:
+				if (isGameOn == false)
+				{
+					for (int i = 0; i < 9; i++)
+					{
+						tabl[i] = ' ';
+					}
 					isGameOn = true;
 					HWND hwndStatic = GetDlgItem(hwndDIg, IDC_STATIC);
 					CHAR szText[500];
@@ -62,6 +214,10 @@ INT_PTR CALLBACK DialogProc(HWND hwndDIg, UINT uMsg, WPARAM wParam, LPARAM lPara
 				}
 				else
 				{
+					for (int i = 0; i < 9; i++)
+					{
+						tabl[i] = ' ';
+					}
 					isGameOn = false;
 					HWND hwndStatic = GetDlgItem(hwndDIg, IDC_STATIC);
 					CHAR szText[500];
@@ -72,52 +228,6 @@ INT_PTR CALLBACK DialogProc(HWND hwndDIg, UINT uMsg, WPARAM wParam, LPARAM lPara
 					wsprintf(szText2, "Start");
 					SetWindowText(hwndButton1, szText2);	
 				}
-				/*HWND hwndbutton2 = GetDlgItem(hwndDIg, IDC_BUTTON2);
-				HWND hwndbutton3 = GetDlgItem(hwndDIg, IDC_BUTTON3);
-				HWND hwndbutton4 = GetDlgItem(hwndDIg, IDC_BUTTON4);
-				HWND hwndbutton5 = GetDlgItem(hwndDIg, IDC_BUTTON5);
-				HWND hwndbutton6 = GetDlgItem(hwndDIg, IDC_BUTTON6);
-				HWND hwndbutton7 = GetDlgItem(hwndDIg, IDC_BUTTON7);
-				HWND hwndbutton8 = GetDlgItem(hwndDIg, IDC_BUTTON8);
-				HWND hwndbutton9 = GetDlgItem(hwndDIg, IDC_BUTTON9);
-				HWND hwndbutton10 = GetDlgItem(hwndDIg, IDC_BUTTON10);*/
-
-				char checkText[9];
-				int TextLenght = 1;
-
-				for (int i = 0; i < 9; i++) {
-					char szText3[1];
-					HWND hwndButton = GetDlgItem(hwndDIg, IDC_BUTTON2 + i);
-					GetWindowText(hwndButton, szText3, TextLenght);
-					checkText[i] = szText3[0];
-				}
-
-				if (((checkText[0] == checkText[1] == checkText[2]) && checkText[0] == 'O')
-					|| ((checkText[3] == checkText[4] == checkText[5]) && checkText[3] == 'O')
-					|| ((checkText[6] == checkText[7] == checkText[8]) && checkText[6] == 'O')
-					|| ((checkText[0] == checkText[3] == checkText[6]) && checkText[0] == 'O')
-					|| ((checkText[1] == checkText[4] == checkText[7]) && checkText[1] == 'O')
-					|| ((checkText[2] == checkText[5] == checkText[8]) && checkText[2] == 'O')
-					|| ((checkText[1] == checkText[4] == checkText[8]) && checkText[1] == 'O')
-					|| ((checkText[2] == checkText[4] == checkText[6]) && checkText[2] == 'O')) {
-					MessageBox(0, "WYGRAL O", "WYGRAL O", MB_OK);
-					isGameOn = !isGameOn;
-					return TRUE;
-				}
-
-				if (((checkText[0] == checkText[1] == checkText[2]) && checkText[0] == 'X')
-					|| ((checkText[3] == checkText[4] == checkText[5]) && checkText[3] == 'X')
-					|| ((checkText[6] == checkText[7] == checkText[8]) && checkText[6] == 'X')
-					|| ((checkText[0] == checkText[3] == checkText[6]) && checkText[0] == 'X')
-					|| ((checkText[1] == checkText[4] == checkText[7]) && checkText[1] == 'X')
-					|| ((checkText[2] == checkText[5] == checkText[8]) && checkText[2] == 'X')
-					|| ((checkText[1] == checkText[4] == checkText[8]) && checkText[1] == 'X')
-					|| ((checkText[2] == checkText[4] == checkText[6]) && checkText[2] == 'X')) {
-					MessageBox(0, "WYGRAL X", "WYGRAL X", MB_OK);
-					isGameOn = !isGameOn;
-					return TRUE;
-				}
-
 				return TRUE;
 			}
 		}
@@ -132,14 +242,27 @@ INT_PTR CALLBACK DialogProc(HWND hwndDIg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow) {
 
-	HWND hwndMainWindow = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_MAINVIEW), NULL, DialogProc);
-	ShowWindow(hwndMainWindow, iCmdShow);
+	int odp;
 
-	MSG msg = {};
-	while (GetMessage(&msg, NULL, 0, 0)) 
+	for (int i = 0; i < 9; i++)
 	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
+		tabl[i] = ' ';
 	}
+
+	do
+	{
+		HWND hwndMainWindow = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_MAINVIEW), NULL, DialogProc);
+		ShowWindow(hwndMainWindow, iCmdShow);
+
+		MSG msg = {};
+		while (GetMessage(&msg, NULL, 0, 0))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		odp = MessageBox(0, "Jeszcze raz ?", "Zagraj ponownie." , MB_YESNO);
+	} while (odp == IDYES);
+
+
 	return 0;
 }
